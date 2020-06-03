@@ -6,7 +6,7 @@ PID::PID() {
   p_error = 0;
   i_error = 0;
   first_run = true;
-  observation_steps = 100000;
+  observation_steps = 100;
   steady_state_steps = 100;
   step_count = 0;
   total_error = 0;
@@ -36,11 +36,11 @@ void PID::UpdateError(double cte) {
     p_error = cte;
     first_run = false;
   }
-    
+
   i_error += cte;
   d_error = cte - p_error;
   p_error = cte;
-  
+
   double sum = (pd[0] + pd[1] + pd[2]);
   if ( sum > twiddle_threshold){
     twiddle(cte);
@@ -54,7 +54,7 @@ double PID::TotalError() {
   /**
    * Calculate and return the total error
    */
-  
+
   return -p[0]*p_error - p[1]*i_error -p[2]*d_error;
 }
 
@@ -62,9 +62,9 @@ void PID::twiddle(double cte) {
   /**
    * perform twiddle algrithm to ompimize the PID gains
    */
-  
+
   double error = cte * cte;
-  
+
   if (step_count < steady_state_steps){
     // waith a time to stabilize the control
     step_count++;
@@ -85,7 +85,7 @@ void PID::twiddle(double cte) {
         }
         // try to add pd to p
         p[p_idx] += pd[p_idx];
-        
+
         // switch to next step
         twiddle_step = 1;
         break;
@@ -102,7 +102,7 @@ void PID::twiddle(double cte) {
         else{
           // if there isn't an improvement, try to subtract pd to p
           p[p_idx] -= 2*pd[p_idx];
-        
+
           // switch to next step
           twiddle_step = 2;
         }
@@ -128,7 +128,7 @@ void PID::twiddle(double cte) {
     total_error = 0;
     step_count = 0;
   }
-  
+
   std::cout << "p = " << p[0] << " , " << p[1] << " , " << p[2] << std::endl;
   std::cout << "dp = " << pd[0] << " , " << pd[1] << " , " << pd[2] << std::endl;
 }

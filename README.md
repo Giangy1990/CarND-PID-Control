@@ -6,11 +6,11 @@ The car has a system able to provide the tracking error of the vehicle with resp
 
 ## PID controller
 The PID controller combines the effect of three control law to minimize the error between the reference and the feedback of the system. in particular, the contribution are:
-* **P** (proportional): it establishes the linear relationship with the problem. It depends by the value of error at the current time step.\
+* **P** (proportional): it establishes the linear relationship with the problem. It depends by the value of error at the current time step. Varying this gain, it is possible to reduce the tracking error for the current time step.
       up = -Kp * e
-* **I** (integral): it establishes linear relationship between the average value of problem over time. It depends by all the story of the error from the beginning of time to the current time step.\
+* **I** (integral): it establishes linear relationship between the average value of problem over time. It depends by all the story of the error from the beginning of time to the current time step. Varying this gain, it is possible to reduce the tracking error at steady state.
       ui = -Ki * ∑ e
-* **D** (derivative): it establishes linear relationship with the rate of change of problem. It depends by the variation of the error between the previous and the current time step.\
+* **D** (derivative): it establishes linear relationship with the rate of change of problem. It depends by the variation of the error between the previous and the current time step. Varying this gain, it is possible to reduce the oscillation around the steady state value.
       ud = -Kd * d(e)/dt
 
 The final control signal is given by the sum of the three contributions.
@@ -23,10 +23,25 @@ To use the controller, there are two functions that must be called in sequence:
 
 ## Tuning
 The PID controller has been tuned through two steps:
-1. the Ziegler-Nichols method to have a first set of gains;
-2. 30 minutes of Twiddle method to fine tune the gain.
+1. Manual tuning to have an acceptable driving behavior (the car drives remaining into the road margins)
+  * First of all, the P gain has been tuned to allow the car to perform at least the first curve of the track;
+  * Then, the D gain has been tuned to mitigate the amplitude of the oscillation;
+  * In the end, the I gain has been tuned to reduce the error on the steady state (the track on the bridge has been used as reference for this step).
 
-In this [video](./media/PID.mp4) it is possible to see the car that drives on the track.
+
+2. 30 minutes of Twiddle method to fine tune the gain. It performs three steps:
+  * It waits for `steady_state_steps = 100` (approx 5s) to stabilize the control with the current gains;
+  * It performs `observation_steps = 100` (approx 5s) to calculate the total error;
+  * It applies the twiddle correction to the gain parameters according to the current total error.
+
+The PID gains obtained by the two tuning phases are showed in the following table.
+
+|    step     |  P  |  I   |  D  |
+|:-----------:|:---:|:----:|:---:|
+|manual tuning| 0.2 | 0.01 |  3  |
+|   twiddle   |0.327|0.0294|4.909|
+
+In this [video](./media/PID.mp4) it is possible to see the car that drives on the track using the final PID gain obtained from the twiddle step. During the record phase, the `observation_steps` has been set to an high value to avoid interference from the twiddle algorithm.
 
 ## Conclusions
 The PID controller is sufficient to drive a vehicle through the track.
